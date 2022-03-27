@@ -30,6 +30,7 @@ class MoviesProvider extends ChangeNotifier {
         'page': '$page',
       },
     );
+
     final response = await http.get(url);
     return response.body;
   }
