@@ -12,6 +12,8 @@ class MoviesProvider extends ChangeNotifier {
   List<Movie> onDisplayMovies = [];
   List<Movie> popularMovies = [];
 
+  Map<int, List<Cast>> movieCast = {};
+
   int _popularPage = 0;
 
   MoviesProvider() {
@@ -20,7 +22,7 @@ class MoviesProvider extends ChangeNotifier {
     this.getPopularMovies();
   }
 
-  Future<String> _getJsonData(String unencodedPath, int page) async {
+  Future<String> _getJsonData(String unencodedPath, [int page = 1]) async {
     var url = Uri.https(
       this._baseUrl,
       unencodedPath,
@@ -36,7 +38,7 @@ class MoviesProvider extends ChangeNotifier {
   }
 
   getOnDisplayMovies() async {
-    final jsonData = await this._getJsonData('3/movie/now_playing', 1);
+    final jsonData = await this._getJsonData('3/movie/now_playing');
     final nowPlayingResponse = NowPlayingResponse.fromJson(jsonData);
 
     onDisplayMovies = nowPlayingResponse.results;
@@ -51,5 +53,22 @@ class MoviesProvider extends ChangeNotifier {
 
     popularMovies = [...popularMovies, ...popularResponse.results];
     notifyListeners();
+  }
+
+  Future<List<Cast>> getMovieCast(int movieId) async {
+    if (movieCast.containsKey(movieId)) {
+      print("No request was needed.");
+      return movieCast[movieId]!;
+    }
+
+    print('Requesting cast data ...');
+
+    final jsonData = await this._getJsonData('3/movie/$movieId/credits');
+
+    final movieCreditsResponse = MovieCreditsResponse.fromJson(jsonData);
+
+    movieCast[movieId] = movieCreditsResponse.cast;
+
+    return movieCreditsResponse.cast;
   }
 }
